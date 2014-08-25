@@ -1,0 +1,9 @@
+Package: com.cbcoding.instanote
+Name: Instanote
+Depends: mobilesubstrate
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: An awesome MobileSubstrate tweak!
+Maintainer: Brandon Sachs
+Author: Brandon Sachs
+Section: Tweaks
