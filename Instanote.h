@@ -11,7 +11,6 @@
 #define IN_SAVE_NOTE @"Save Note"
 #define IN_CANCEL @"Cancel"
 
-@interface IGFeedItemHeader{
-}
+@interface IGFeedItemHeader
 - (void)profilePictureTapped:(id)fp8;
 @end

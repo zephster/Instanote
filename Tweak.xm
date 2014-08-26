@@ -13,6 +13,10 @@
 
 #import "Instanote.h"
 
+static NSString* INGetNoteForUser(NSString *user)
+{
+    return [[NSUserDefaults standardUserDefaults] objectForKey:user];
+}
 %group INinit
 
 %hook IGFeedItemHeader
@@ -26,27 +30,20 @@
         NSString *username = [raw_username substringFromIndex:8]; // leading "Photo by "
         username = [username substringToIndex:[username length] - 1]; // trailing "."
 
+        //check if user has saved note
+        NSString *saved_note = INGetNoteForUser(username);
 
-        NSString *alertMsg = [NSString stringWithFormat:IN_NO_NOTE_FOUND, username];
-
-        UIAlertView *INAlert = [[UIAlertView alloc] initWithTitle:IN_ALERT_TITLE
-            message:alertMsg
-            delegate:self
-            cancelButtonTitle:IN_CANCEL
-            otherButtonTitles:IN_SAVE_NOTE, nil];
-
-        //prompt for note info
-        [INAlert setAlertViewStyle:UIAlertViewStylePlainTextInput];
-
-        //NSUserDefaults *settings = [NSUserDefaults standardUserDefaults];
-        // [settings removeObjectForKey:@"AS_SELECTED_ALBUM"];
-        // [settings setObject:albumName forKey:@"AS_SELECTED_ALBUM"];
-        // [settings synchronize];
+        if (saved_note == nil)
+        {
+        	NSLog(@"[Instanote] No saved note for user %@", username);
+        }
+        else
+        {
+        	NSLog(@"[Instanote] Saved note for user %@: %@", username, saved_note);
+        }
 
 
-        INAlert.tag = 710;
-        [INAlert show];
-        [INAlert release];
+        
 
         // for this tweak, we don't want it navigating to the user profile when
         // tapping the small profile pic. you can still view the user profile by
