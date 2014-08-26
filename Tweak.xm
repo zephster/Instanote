@@ -13,9 +13,9 @@ static NSString *INGetNoteForUser(NSString *user)
 
 static void INSaveNoteForUser(NSString *user, NSString *note)
 {
-	NSUserDefaults *settings = [NSUserDefaults standardUserDefaults];
-	[settings setObject:note forKey:user];
-	[settings synchronize];
+    NSUserDefaults *settings = [NSUserDefaults standardUserDefaults];
+    [settings setObject:note forKey:user];
+    [settings synchronize];
 }
 
 %group INinit
@@ -34,14 +34,18 @@ static void INSaveNoteForUser(NSString *user, NSString *note)
         // check if user has saved note
         NSString *saved_note = INGetNoteForUser(username);
 
+        // save username
+        objc_setAssociatedObject(self, @selector(_INUser), username, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
         if (saved_note == nil)
         {
-        	NSLog(@"[Instanote] No saved note for user %@.", username);
-        	[self INNewNoteForUser:username];
+            NSLog(@"[Instanote] No saved note for user %@.", username);
+            [self INNewNoteForUser:username];
         }
         else
         {
-        	NSLog(@"[Instanote] Saved note for user %@: %@.", username, saved_note);
+            NSLog(@"[Instanote] Saved note for user %@: %@.", username, saved_note);
+            [self INShowNote:saved_note];
         }
 
         // for this tweak, we don't want it navigating to the user profile when
@@ -50,44 +54,59 @@ static void INSaveNoteForUser(NSString *user, NSString *note)
         // %orig;
     }
 
-
+    // new note dialog
     %new
     - (void)INNewNoteForUser:(NSString *)username
     {
-    	NSString *alertMsg = [NSString stringWithFormat:IN_NO_NOTE_FOUND, username];
+        NSString *alertMsg = [NSString stringWithFormat:IN_NEW_NOTE_ALERT_DIALOG, username];
 
-    	UIAlertView *INAlert = [[UIAlertView alloc] initWithTitle:IN_ALERT_TITLE
-    	    message:alertMsg
-    	    delegate:self
-    	    cancelButtonTitle:IN_CANCEL
-    	    otherButtonTitles:IN_SAVE_NOTE, nil];
+        UIAlertView *IMNewNoteAlert = [[UIAlertView alloc] initWithTitle:IN_NEW_NOTE_ALERT_TITLE
+            message:alertMsg
+            delegate:self
+            cancelButtonTitle:IN_NEW_NOTE_CANCEL_BUTTON
+            otherButtonTitles:IN_NEW_NOTE_SAVE_BUTTON, nil];
 
-    	// prompt for note info
-    	[INAlert setAlertViewStyle:UIAlertViewStylePlainTextInput];
+        [IMNewNoteAlert setAlertViewStyle:UIAlertViewStylePlainTextInput];
 
-    	INAlert.tag = 710;
-    	[INAlert show];
-    	[INAlert release];
-
-    	// save username for use in alert
-    	objc_setAssociatedObject(self, @selector(_INUser), username, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        IMNewNoteAlert.tag = 710;
+        [IMNewNoteAlert show];
+        [IMNewNoteAlert release];
     }
 
+    // show note dialog
     %new
-	- (void)alertView:(UIAlertView *)INNewNote clickedButtonAtIndex:(NSInteger)buttonIndex
-	{
-		if (INNewNote.tag == 710)
-		{
-			NSString *username = objc_getAssociatedObject(self, @selector(_INUser));
-			UITextField *note = [INNewNote textFieldAtIndex:0];
+    - (void)INShowNote:(NSString *)note
+    {
+        NSString *username = objc_getAssociatedObject(self, @selector(_INUser));
+        NSString *title = [NSString stringWithFormat:IN_SHOW_NOTE_ALERT_TITLE, username];
 
-			if ( ! (note.text && note.text.length))
-				return;
+        UIAlertView *IMShowNoteAlert = [[UIAlertView alloc] initWithTitle:title
+            message:note
+            delegate:self
+            cancelButtonTitle:IN_SHOW_NOTE_EDIT_BUTTON
+            otherButtonTitles:IN_SHOW_NOTE_DISMISS_BUTTON, nil];
 
-			NSLog(@"[Instanote] Creating note \"%@\" for user %@.", note.text, username);
-			INSaveNoteForUser(username, note.text);
-		}
-	}
+        IMShowNoteAlert.tag = 420;
+        [IMShowNoteAlert show];
+        [IMShowNoteAlert release];
+    }
+
+    // alert responses
+    %new
+    - (void)alertView:(UIAlertView *)INNewNote clickedButtonAtIndex:(NSInteger)buttonIndex
+    {
+        if (INNewNote.tag == 710)
+        {
+            NSString *username = objc_getAssociatedObject(self, @selector(_INUser));
+            UITextField *note = [INNewNote textFieldAtIndex:0];
+
+            if ( ! (note.text && note.text.length))
+                return;
+
+            NSLog(@"[Instanote] Creating note \"%@\" for user %@.", note.text, username);
+            INSaveNoteForUser(username, note.text);
+        }
+    }
 
 %end
 
