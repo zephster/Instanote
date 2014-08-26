@@ -6,10 +6,18 @@
 
 #import "Instanote.h"
 
-static NSString* INGetNoteForUser(NSString *user)
+static NSString *INGetNoteForUser(NSString *user)
 {
     return [[NSUserDefaults standardUserDefaults] objectForKey:user];
 }
+
+static void INSaveNoteForUser(NSString *user, NSString *note)
+{
+	NSUserDefaults *settings = [NSUserDefaults standardUserDefaults];
+	[settings setObject:note forKey:user];
+	[settings synchronize];
+}
+
 %group INinit
 
 %hook IGFeedItemHeader
@@ -28,12 +36,12 @@ static NSString* INGetNoteForUser(NSString *user)
 
         if (saved_note == nil)
         {
-        	NSLog(@"[Instanote] No saved note for user %@", username);
-        	[self INNewNoteAlertView:username];
+        	NSLog(@"[Instanote] No saved note for user %@.", username);
+        	[self INNewNoteForUser:username];
         }
         else
         {
-        	NSLog(@"[Instanote] Saved note for user %@: %@", username, saved_note);
+        	NSLog(@"[Instanote] Saved note for user %@: %@.", username, saved_note);
         }
 
         // for this tweak, we don't want it navigating to the user profile when
@@ -44,7 +52,7 @@ static NSString* INGetNoteForUser(NSString *user)
 
 
     %new
-    - (void)INNewNoteAlertView:(NSString *)username
+    - (void)INNewNoteForUser:(NSString *)username
     {
     	NSString *alertMsg = [NSString stringWithFormat:IN_NO_NOTE_FOUND, username];
 
@@ -54,13 +62,32 @@ static NSString* INGetNoteForUser(NSString *user)
     	    cancelButtonTitle:IN_CANCEL
     	    otherButtonTitles:IN_SAVE_NOTE, nil];
 
-    	//prompt for note info
+    	// prompt for note info
     	[INAlert setAlertViewStyle:UIAlertViewStylePlainTextInput];
 
     	INAlert.tag = 710;
     	[INAlert show];
     	[INAlert release];
+
+    	// save username for use in alert
+    	objc_setAssociatedObject(self, @selector(_INUser), username, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
+
+    %new
+	- (void)alertView:(UIAlertView *)INNewNote clickedButtonAtIndex:(NSInteger)buttonIndex
+	{
+		if (INNewNote.tag == 710)
+		{
+			NSString *username = objc_getAssociatedObject(self, @selector(_INUser));
+			UITextField *note = [INNewNote textFieldAtIndex:0];
+
+			if ( ! (note.text && note.text.length))
+				return;
+
+			NSLog(@"[Instanote] Creating note \"%@\" for user %@.", note.text, username);
+			INSaveNoteForUser(username, note.text);
+		}
+	}
 
 %end
 
