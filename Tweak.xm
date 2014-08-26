@@ -34,18 +34,18 @@ static void INSaveNoteForUser(NSString *user, NSString *note)
         // check if user has saved note
         NSString *saved_note = INGetNoteForUser(username);
 
-        // save username
+        // save username for use in alert views
         objc_setAssociatedObject(self, @selector(_INUser), username, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
         if (saved_note == nil)
         {
             NSLog(@"[Instanote] No saved note for user %@.", username);
-            [self INNewNoteForUser:username];
+            [self INEditNoteForUser:username];
         }
         else
         {
-            NSLog(@"[Instanote] Saved note for user %@: %@.", username, saved_note);
-            [self INShowNote:saved_note];
+            NSLog(@"[Instanote] Showing note for user %@: %@.", username, saved_note);
+            [self INShowNote:saved_note forUser:username];
         }
 
         // for this tweak, we don't want it navigating to the user profile when
@@ -54,9 +54,9 @@ static void INSaveNoteForUser(NSString *user, NSString *note)
         // %orig;
     }
 
-    // new note dialog
+    // edit note dialog
     %new
-    - (void)INNewNoteForUser:(NSString *)username
+    - (void)INEditNoteForUser:(NSString *)username
     {
         NSString *alertMsg = [NSString stringWithFormat:IN_NEW_NOTE_ALERT_DIALOG, username];
 
@@ -75,11 +75,12 @@ static void INSaveNoteForUser(NSString *user, NSString *note)
 
     // show note dialog
     %new
-    - (void)INShowNote:(NSString *)note
+    - (void)INShowNote:(NSString *)note forUser:(NSString *)username
     {
-        NSString *username = objc_getAssociatedObject(self, @selector(_INUser));
         NSString *title = [NSString stringWithFormat:IN_SHOW_NOTE_ALERT_TITLE, username];
 
+        // i'm using cancel as the actionable button because its position
+        // requires a more intentional touch than the instinctive "OK"
         UIAlertView *IMShowNoteAlert = [[UIAlertView alloc] initWithTitle:title
             message:note
             delegate:self
@@ -93,18 +94,30 @@ static void INSaveNoteForUser(NSString *user, NSString *note)
 
     // alert responses
     %new
-    - (void)alertView:(UIAlertView *)INNewNote clickedButtonAtIndex:(NSInteger)buttonIndex
+    - (void)alertView:(UIAlertView *)INDialogResult clickedButtonAtIndex:(NSInteger)buttonIndex
     {
-        if (INNewNote.tag == 710)
+        NSString *username = objc_getAssociatedObject(self, @selector(_INUser));
+        
+        // save new note
+        if (INDialogResult.tag == 710)
         {
-            NSString *username = objc_getAssociatedObject(self, @selector(_INUser));
-            UITextField *note = [INNewNote textFieldAtIndex:0];
+            UITextField *note = [INDialogResult textFieldAtIndex:0];
 
             if ( ! (note.text && note.text.length))
                 return;
 
             NSLog(@"[Instanote] Creating note \"%@\" for user %@.", note.text, username);
             INSaveNoteForUser(username, note.text);
+        }
+
+        // edit note tapped
+        if (INDialogResult.tag == 420)
+        {
+            if (buttonIndex == [INDialogResult cancelButtonIndex])
+            {
+                NSLog(@"[Instanote] Editing note for user %@.", username);
+                [self INEditNoteForUser:username];
+            }
         }
     }
 

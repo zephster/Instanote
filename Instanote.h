@@ -19,6 +19,6 @@
     NSString *_INUser;
 }
 - (void)profilePictureTapped:(id)fp8;
-- (void)INNewNoteForUser:(NSString *)username;
-- (void)INShowNote:(NSString *)note;
+- (void)INEditNoteForUser:(NSString *)username;
+- (void)INShowNote:(NSString *)note forUser:(NSString *)username;
 @end
