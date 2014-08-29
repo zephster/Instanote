@@ -1,0 +1,10 @@
+{
+    entry = {
+        bundle = InstanotePrefs;
+        cell = PSLinkCell;
+        detail = INPrefsListController;
+        icon = instanoteprefs.png;
+        isController = 1;
+        label = Instanote;
+    };
+}
