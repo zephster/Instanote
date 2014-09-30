@@ -6,16 +6,27 @@
 
 #import "Instanote.h"
 
-static NSString *INGetNoteForUser(NSString *user)
+static NSMutableDictionary *INSavedUserNotes;
+
+static void INLoadUserNotes()
 {
-    return [[NSUserDefaults standardUserDefaults] objectForKey:user];
+    if (INSavedUserNotes)
+    {
+        [INSavedUserNotes release];
+    }
+
+    INSavedUserNotes = [NSMutableDictionary dictionaryWithContentsOfFile:IN_SETTINGS_FILE];
 }
 
-static void INSaveNoteForUser(NSString *user, NSString *note)
+static NSString *INGetNoteForUser(NSString *user)
 {
-    NSUserDefaults *settings = [NSUserDefaults standardUserDefaults];
-    [settings setObject:note forKey:user];
-    [settings synchronize];
+    return [INSavedUserNotes valueForKey:user];
+}
+
+static bool INSaveNoteForUser(NSString *user, NSString *note)
+{
+    [INSavedUserNotes setObject:note forKey:user];
+    return [INSavedUserNotes writeToFile:IN_SETTINGS_FILE atomically:YES];
 }
 
 %group INinit
@@ -30,11 +41,14 @@ static void INSaveNoteForUser(NSString *user, NSString *note)
         // remove leading "Photo by "
         NSString *username = [raw_username substringFromIndex:8];
 
+        // remove trailing period
+        username = [username substringToIndex:[username length] - 1];
+
         // location removal
         NSRange loc_info = [username rangeOfString:@"Taken at"];
         if (loc_info.location != NSNotFound)
         {
-        	username = [username substringToIndex:loc_info.location];
+            username = [username substringToIndex:loc_info.location];
         }
 
         // check if user has saved note
@@ -134,5 +148,6 @@ static void INSaveNoteForUser(NSString *user, NSString *note)
 
 %ctor
 {
+    INLoadUserNotes();
     %init(INinit);
 }
