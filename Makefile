@@ -1,3 +1,5 @@
+THEOS_DEVICE_IP = 192.168.2.101
+
 ARCHS = armv7 arm64
 THEOS_PACKAGE_DIR_NAME = debs
 
@@ -9,5 +11,8 @@ Instanote_FRAMEWORKS = UIKit
 
 include theos/makefiles/tweak.mk
 
+SUBPROJECTS += instanoteprefs
+include $(THEOS_MAKE_PATH)/aggregate.mk
+
 after-install::
-	install.exec "killall -9 Instagram"
+	install.exec "killall -9 Instagram & killall -9 Preferences"

@@ -16,7 +16,7 @@
 			<key>default</key>
 			<true/>
 			<key>defaults</key>
-			<string>com.cbcoding.instanoteprefs</string>
+			<string>com.cbcoding.instanote.prefs</string>
 			<key>key</key>
 			<string>AwesomeSwitch1</string>
 			<key>label</key>
@@ -24,6 +24,6 @@
 		</dict>
 	</array>
 	<key>title</key>
-	<string>InstanotePrefs</string>
+	<string>Instanote</string>
 </dict>
 </plist>
