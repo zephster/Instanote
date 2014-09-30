@@ -7,7 +7,7 @@
 #import "substrate.h"
 
 #define IN_NEW_NOTE_ALERT_TITLE @"Instanote"
-#define IN_NEW_NOTE_ALERT_DIALOG @"Enter note for %@."
+#define IN_NEW_NOTE_ALERT_DIALOG @"Enter note for %@"
 #define IN_NEW_NOTE_SAVE_BUTTON @"Save Note"
 #define IN_NEW_NOTE_CANCEL_BUTTON @"Cancel"
  

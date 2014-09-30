@@ -27,9 +27,15 @@ static void INSaveNoteForUser(NSString *user, NSString *note)
         // get raw text from an accessibility label for the username
         NSString *raw_username = MSHookIvar<NSString *>(self, "_accessibilityLabel");
 
-        // extract username
-        NSString *username = [raw_username substringFromIndex:8]; // leading "Photo by "
-        username = [username substringToIndex:[username length] - 1]; // trailing "."
+        // remove leading "Photo by "
+        NSString *username = [raw_username substringFromIndex:8];
+
+        // location removal
+        NSRange loc_info = [username rangeOfString:@"Taken at"];
+        if (loc_info.location != NSNotFound)
+        {
+        	username = [username substringToIndex:loc_info.location];
+        }
 
         // check if user has saved note
         NSString *saved_note = INGetNoteForUser(username);
