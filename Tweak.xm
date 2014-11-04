@@ -41,15 +41,15 @@ static bool INSaveNoteForUser(NSString *user, NSString *note)
         // remove leading "Photo by "
         NSString *username = [raw_username substringFromIndex:8];
 
-        // remove trailing period
-        username = [username substringToIndex:[username length] - 1];
-
         // location removal
         NSRange loc_info = [username rangeOfString:@"Taken at"];
         if (loc_info.location != NSNotFound)
         {
             username = [username substringToIndex:loc_info.location];
         }
+
+        // remove trailing period
+        username = [username substringToIndex:[username length] - 1];
 
         // check if user has saved note
         NSString *saved_note = INGetNoteForUser(username);
